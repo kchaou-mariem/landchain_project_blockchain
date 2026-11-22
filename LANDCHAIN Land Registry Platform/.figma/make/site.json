@@ -1,0 +1,10 @@
+{
+  "description": "Manage land records, verify document fingerprints, track ownership transfers, and review blockchain activity in one secure platform for property owners and land agents.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

@@ -1,0 +1,1352 @@
+﻿[
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "address",
+                           "name":  "admin",
+                           "type":  "address"
+                       }
+                   ],
+        "stateMutability":  "nonpayable",
+        "type":  "constructor"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "AccessControlBadConfirmation",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "address",
+                           "name":  "account",
+                           "type":  "address"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "neededRole",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "AccessControlUnauthorizedAccount",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "caller",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "ConflictOfInterest",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "EmptyReference",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "InvalidAdmin",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "InvalidDocumentHash",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "InvalidLandId",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "InvalidOwner",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "InvalidProposedOwner",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "enum LandRegistry.LandStatus",
+                           "name":  "current",
+                           "type":  "uint8"
+                       },
+                       {
+                           "internalType":  "enum LandRegistry.LandStatus",
+                           "name":  "requested",
+                           "type":  "uint8"
+                       }
+                   ],
+        "name":  "InvalidStatusChange",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "LandAlreadyExists",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "LandIsSuspended",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "LandNotFound",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "caller",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "NotLandOwner",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "caller",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "NotProposalSubmitter",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "caller",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "NotRequester",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "OwnerChangedSinceRequest",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "PendingRequestExists",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "ProposalAlreadyExists",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "ProposalNotFound",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "RequestNotFound",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "enum LandRegistry.RequestStatus",
+                           "name":  "status",
+                           "type":  "uint8"
+                       }
+                   ],
+        "name":  "RequestNotPending",
+        "type":  "error"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "SameDocumentHash",
+        "type":  "error"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "bytes32",
+                           "name":  "oldHash",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "bytes32",
+                           "name":  "newHash",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "updatedBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "DocumentHashUpdated",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "reviewedBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "LandProposalApproved",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "cancelledBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "LandProposalCancelled",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "reviewedBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "LandProposalRejected",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "string",
+                           "name":  "landRef",
+                           "type":  "string"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "proposedOwner",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "bytes32",
+                           "name":  "documentHash",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "submittedBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "LandProposalSubmitted",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "owner",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "bytes32",
+                           "name":  "documentHash",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "registeredBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "LandRegistered",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "enum LandRegistry.LandStatus",
+                           "name":  "oldStatus",
+                           "type":  "uint8"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "enum LandRegistry.LandStatus",
+                           "name":  "newStatus",
+                           "type":  "uint8"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "changedBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "LandStatusChanged",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "previousOwner",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "newOwner",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "OwnershipChanged",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "bytes32",
+                           "name":  "previousAdminRole",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "bytes32",
+                           "name":  "newAdminRole",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "RoleAdminChanged",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "account",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "sender",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "RoleGranted",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "account",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "sender",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "RoleRevoked",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "reviewedBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "TransferApproved",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "cancelledBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "TransferCancelled",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "reviewedBy",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "TransferRejected",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  true,
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "currentOwner",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "address",
+                           "name":  "proposedOwner",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "TransferRequested",
+        "type":  "event"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "AGENT_ROLE",
+        "outputs":  [
+                        {
+                            "internalType":  "bytes32",
+                            "name":  "",
+                            "type":  "bytes32"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "DEFAULT_ADMIN_ROLE",
+        "outputs":  [
+                        {
+                            "internalType":  "bytes32",
+                            "name":  "",
+                            "type":  "bytes32"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "approveLandProposal",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "approveTransfer",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "cancelLandProposal",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "cancelTransferRequest",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "getLand",
+        "outputs":  [
+                        {
+                            "components":  [
+                                               {
+                                                   "internalType":  "string",
+                                                   "name":  "landRef",
+                                                   "type":  "string"
+                                               },
+                                               {
+                                                   "internalType":  "address",
+                                                   "name":  "owner",
+                                                   "type":  "address"
+                                               },
+                                               {
+                                                   "internalType":  "bytes32",
+                                                   "name":  "documentHash",
+                                                   "type":  "bytes32"
+                                               },
+                                               {
+                                                   "internalType":  "enum LandRegistry.LandStatus",
+                                                   "name":  "status",
+                                                   "type":  "uint8"
+                                               },
+                                               {
+                                                   "internalType":  "uint64",
+                                                   "name":  "createdAt",
+                                                   "type":  "uint64"
+                                               },
+                                               {
+                                                   "internalType":  "bool",
+                                                   "name":  "exists",
+                                                   "type":  "bool"
+                                               }
+                                           ],
+                            "internalType":  "struct LandRegistry.Land",
+                            "name":  "",
+                            "type":  "tuple"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "getLandProposal",
+        "outputs":  [
+                        {
+                            "components":  [
+                                               {
+                                                   "internalType":  "uint256",
+                                                   "name":  "landId",
+                                                   "type":  "uint256"
+                                               },
+                                               {
+                                                   "internalType":  "string",
+                                                   "name":  "landRef",
+                                                   "type":  "string"
+                                               },
+                                               {
+                                                   "internalType":  "address",
+                                                   "name":  "proposedOwner",
+                                                   "type":  "address"
+                                               },
+                                               {
+                                                   "internalType":  "bytes32",
+                                                   "name":  "documentHash",
+                                                   "type":  "bytes32"
+                                               },
+                                               {
+                                                   "internalType":  "address",
+                                                   "name":  "submittedBy",
+                                                   "type":  "address"
+                                               },
+                                               {
+                                                   "internalType":  "uint64",
+                                                   "name":  "createdAt",
+                                                   "type":  "uint64"
+                                               },
+                                               {
+                                                   "internalType":  "bool",
+                                                   "name":  "exists",
+                                                   "type":  "bool"
+                                               }
+                                           ],
+                            "internalType":  "struct LandRegistry.LandProposal",
+                            "name":  "",
+                            "type":  "tuple"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "getRoleAdmin",
+        "outputs":  [
+                        {
+                            "internalType":  "bytes32",
+                            "name":  "",
+                            "type":  "bytes32"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "getTransferRequest",
+        "outputs":  [
+                        {
+                            "components":  [
+                                               {
+                                                   "internalType":  "uint256",
+                                                   "name":  "landId",
+                                                   "type":  "uint256"
+                                               },
+                                               {
+                                                   "internalType":  "address",
+                                                   "name":  "currentOwner",
+                                                   "type":  "address"
+                                               },
+                                               {
+                                                   "internalType":  "address",
+                                                   "name":  "proposedOwner",
+                                                   "type":  "address"
+                                               },
+                                               {
+                                                   "internalType":  "enum LandRegistry.RequestStatus",
+                                                   "name":  "status",
+                                                   "type":  "uint8"
+                                               },
+                                               {
+                                                   "internalType":  "uint64",
+                                                   "name":  "createdAt",
+                                                   "type":  "uint64"
+                                               },
+                                               {
+                                                   "internalType":  "address",
+                                                   "name":  "reviewedBy",
+                                                   "type":  "address"
+                                               },
+                                               {
+                                                   "internalType":  "uint64",
+                                                   "name":  "reviewedAt",
+                                                   "type":  "uint64"
+                                               }
+                                           ],
+                            "internalType":  "struct LandRegistry.TransferRequest",
+                            "name":  "",
+                            "type":  "tuple"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "account",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "grantRole",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "account",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "hasRole",
+        "outputs":  [
+                        {
+                            "internalType":  "bool",
+                            "name":  "",
+                            "type":  "bool"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "landCount",
+        "outputs":  [
+                        {
+                            "internalType":  "uint256",
+                            "name":  "",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "landExists",
+        "outputs":  [
+                        {
+                            "internalType":  "bool",
+                            "name":  "",
+                            "type":  "bool"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "pendingRequestCount",
+        "outputs":  [
+                        {
+                            "internalType":  "uint256",
+                            "name":  "",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "pendingRequestOf",
+        "outputs":  [
+                        {
+                            "internalType":  "uint256",
+                            "name":  "",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "proposalCount",
+        "outputs":  [
+                        {
+                            "internalType":  "uint256",
+                            "name":  "",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "string",
+                           "name":  "landRef",
+                           "type":  "string"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "owner",
+                           "type":  "address"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "documentHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "registerLand",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "proposalId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "rejectLandProposal",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "requestId",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "rejectTransfer",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "callerConfirmation",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "renounceRole",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "requestCount",
+        "outputs":  [
+                        {
+                            "internalType":  "uint256",
+                            "name":  "",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "proposedOwner",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "requestTransfer",
+        "outputs":  [
+                        {
+                            "internalType":  "uint256",
+                            "name":  "requestId",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "account",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "revokeRole",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "enum LandRegistry.LandStatus",
+                           "name":  "newStatus",
+                           "type":  "uint8"
+                       }
+                   ],
+        "name":  "setLandStatus",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "string",
+                           "name":  "landRef",
+                           "type":  "string"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "proposedOwner",
+                           "type":  "address"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "documentHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "submitLandProposal",
+        "outputs":  [
+                        {
+                            "internalType":  "uint256",
+                            "name":  "proposalId",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes4",
+                           "name":  "interfaceId",
+                           "type":  "bytes4"
+                       }
+                   ],
+        "name":  "supportsInterface",
+        "outputs":  [
+                        {
+                            "internalType":  "bool",
+                            "name":  "",
+                            "type":  "bool"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "newHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "updateDocumentHash",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "uint256",
+                           "name":  "landId",
+                           "type":  "uint256"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "documentHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "verifyDocument",
+        "outputs":  [
+                        {
+                            "internalType":  "enum LandRegistry.VerificationResult",
+                            "name":  "",
+                            "type":  "uint8"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    }
+]

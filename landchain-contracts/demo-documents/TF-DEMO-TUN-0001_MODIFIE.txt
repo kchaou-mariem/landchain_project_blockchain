@@ -1,0 +1,8 @@
+DOCUMENT FICTIF - DEMONSTRATION LANDCHAIN
+Aucune valeur juridique. Donnees inventees.
+
+Reference fonciere : TF-DEMO-TUN-0001
+Zone               : Tunis (zone fictive A)
+Superficie         : 210 m2
+Titulaire (fictif) : Ahmed
+Etablissement      : exemple de titre pour le prototype academique

@@ -1,0 +1,8 @@
+DOCUMENT FICTIF - DEMONSTRATION LANDCHAIN
+Aucune valeur juridique. Donnees inventees.
+
+Reference fonciere : TF-DEMO-KRO-0006
+Zone               : Kairouan (zone fictive F)
+Superficie         : 600 m2
+Titulaire (fictif) : Mohamed
+Etablissement      : exemple de titre pour le prototype academique

@@ -1,0 +1,8 @@
+DOCUMENT FICTIF - DEMONSTRATION LANDCHAIN
+Aucune valeur juridique. Donnees inventees.
+
+Reference fonciere : TF-DEMO-SFX-0002
+Zone               : Sfax (zone fictive B)
+Superficie         : 350 m2
+Titulaire (fictif) : Fatma
+Etablissement      : exemple de titre pour le prototype academique

@@ -1,0 +1,30 @@
+{
+  "name": "landchain-contracts",
+  "version": "0.2.0",
+  "private": true,
+  "description": "LANDCHAIN - Phases 2 et 3 : smart contracts et déploiement local du registre foncier (prototype académique)",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "seed:local": "hardhat run scripts/seed.js --network localhost",
+    "check:local": "hardhat run scripts/check.js --network localhost",
+    "configure:agent2": "hardhat run scripts/configure-agent.js --network localhost",
+    "setup:local": "npm run deploy:local && npm run seed:local && npm run check:local",
+    "demo:memory": "hardhat run scripts/demo-all.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
+    "@openzeppelin/contracts": "^5.1.0",
+    "chai": "^4.5.0",
+    "ethers": "^6.13.4",
+    "hardhat": "^2.26.3",
+    "solc": "^0.8.28",
+    "solidity-coverage": "^0.8.14"
+  }
+}

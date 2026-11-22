@@ -1,0 +1,8 @@
+DOCUMENT FICTIF - DEMONSTRATION LANDCHAIN
+Aucune valeur juridique. Donnees inventees.
+
+Reference fonciere : TF-DEMO-MON-0007
+Zone               : Monastir (zone fictive G)
+Superficie         : 150 m2
+Titulaire (fictif) : Compte de l'agent 2 (cas de conflit d'interet)
+Etablissement      : exemple de titre pour le prototype academique

@@ -1,0 +1,7 @@
+Documents fictifs utilises par scripts/seed.js. Ne pas modifier : leurs empreintes SHA-256
+sont enregistrees sur la blockchain locale.
+Pour la demonstration de la page Verification :
+ - TF-DEMO-TUN-0001.txt          -> "Empreinte correspondante" pour le bien 1001
+ - TF-DEMO-TUN-0001_MODIFIE.txt  -> "Empreinte differente" (120 m2 devenu 210 m2)
+ - TF-DEMO-KRO-0006.txt          -> "Empreinte differente" pour le bien 1006 (empreinte mise a jour vers la v2)
+ - bien 9999                     -> "Reference introuvable"

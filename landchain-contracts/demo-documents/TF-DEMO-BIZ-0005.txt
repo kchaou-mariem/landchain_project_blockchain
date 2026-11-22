@@ -1,0 +1,8 @@
+DOCUMENT FICTIF - DEMONSTRATION LANDCHAIN
+Aucune valeur juridique. Donnees inventees.
+
+Reference fonciere : TF-DEMO-BIZ-0005
+Zone               : Bizerte (zone fictive E)
+Superficie         : 95 m2
+Titulaire (fictif) : Fatma
+Etablissement      : exemple de titre pour le prototype academique
