@@ -86,8 +86,16 @@ chaîne, mais n'écrivent rien.
 
 1. Ajouter un réseau manuellement : RPC `http://127.0.0.1:8545`, identifiant de chaîne `31337`, symbole `ETH`.
 2. Importer les comptes voulus avec leur clé privée (affichée par `npm run node` au démarrage, pour chaque compte de test).
-3. Le frontend lira l'adresse du contrat dans `deployments/localhost.json` et l'ABI dans `deployments/LandRegistry.abi.json` (décision A8) :
-   rien n'est codé en dur.
+3. Configurez `LANDCHAIN Land Registry Platform/.env.local` avec le réseau `localhost` et l'adresse
+   `contract.address` de `deployments/localhost.json` :
+
+   ```env
+   VITE_LANDCHAIN_NETWORK=localhost
+   VITE_LANDREGISTRY_ADDRESS=<adresse de deployments/localhost.json>
+   ```
+
+   Le frontend charge l'ABI versionnée dans `src/lib/LandRegistry.abi.json`. La clé privée
+   d'un compte de test Hardhat ne doit jamais être utilisée sur un réseau public.
 
 Si MetaMask affiche une erreur de nonce après un redémarrage du nœud : Paramètres > Avancé > « Effacer les données d'activité ».
 

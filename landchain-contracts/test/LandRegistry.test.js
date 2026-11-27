@@ -18,7 +18,7 @@ const DOC_HASH = sha256Of(DOC_V1);
 describe("LandRegistry", function () {
   async function deployFixture() {
     const [admin, agent, agent2, owner, newOwner, outsider, other] =
-      await ethers.getSigners();
+      await ethers.getSigners(); // Attend qu'une opération asynchrone se termine avant de lancer la suivante 
     const registry = await (await ethers.getContractFactory("LandRegistry")).deploy(admin.address);
     await registry.waitForDeployment();
     const AGENT_ROLE = await registry.AGENT_ROLE();
@@ -48,7 +48,7 @@ describe("LandRegistry", function () {
   describe("Déploiement et rôles (RM-16, RM-17)", function () {
     it("donne le rôle d'administrateur au compte fourni, sans rôle d'agent", async function () {
       const { registry, admin, AGENT_ROLE, DEFAULT_ADMIN_ROLE } = await loadFixture(deployFixture);
-      expect(await registry.hasRole(DEFAULT_ADMIN_ROLE, admin.address)).to.equal(true);
+      expect(await registry.hasRole(DEFAULT_ADMIN_ROLE, admin.address)).to.equal(true); //expect: compare ce qui est attendu avec ce qui est obtenu,, si c'est pas égal, le test échoue
       expect(await registry.hasRole(AGENT_ROLE, admin.address)).to.equal(false);
     });
 

@@ -2,6 +2,7 @@ require("@nomicfoundation/hardhat-ethers");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomicfoundation/hardhat-network-helpers");
 require("solidity-coverage");
+require("dotenv").config();
 require("./tasks/history");
 const { subtask } = require("hardhat/config");
 const { TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD } = require("hardhat/builtin-tasks/task-names");
@@ -34,5 +35,12 @@ module.exports = {
   networks: {
     // Réseau local lancé par `npx hardhat node` (Phase 3). Les comptes sont ceux du nœud.
     localhost: { url: "http://127.0.0.1:8545", chainId: 31337 },
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com",
+      chainId: 11155111,
+      accounts: process.env.DEPLOYER_PRIVATE_KEY
+        ? [process.env.DEPLOYER_PRIVATE_KEY]
+        : [],
+    },
   },
 };

@@ -86,9 +86,9 @@ contract LandRegistry is AccessControl {
     mapping(uint256 requestId => TransferRequest) private _requests;
     /// @dev landId => requestId de la demande en attente (0 si aucune). Applique RM-09.
     mapping(uint256 landId => uint256 requestId) private _pendingRequest;
-    mapping(uint256 proposalId => LandProposal) private _proposals;
+    mapping(uint256 proposalId => LandProposal) private _proposals; // _getProposal() vérifie l'existence => c une fonction definie a la fin du contrat (fonction interne) .
     /// @dev landId => proposalId de la proposition ouverte (0 si aucune).
-    mapping(uint256 landId => uint256 proposalId) private _openProposalOf;
+    mapping(uint256 landId => uint256 proposalId) private _openProposalOf; //c utilisé pour vérifier qu'il n'y a pas de proposition ouverte pour un bien donné
 
     uint256 public landCount;
     uint256 public requestCount;
@@ -199,10 +199,10 @@ contract LandRegistry is AccessControl {
     /// @notice Enregistre un nouveau bien (RM-01 à RM-05).
     function registerLand(
         uint256 landId,
-        string calldata landRef,
+        string calldata landRef, //calldata : sert à indiquer que la variable est en lecture seule et qu'elle est stockée dans la mémoire de la fonction, ce qui permet d'économiser de l'espace mémoire et d'améliorer les performances. 
         address owner,
         bytes32 documentHash
-    ) external onlyRole(AGENT_ROLE) {
+    ) external onlyRole(AGENT_ROLE) { //external : sert à indiquer que la fonction est appelée depuis l'extérieur du contrat
         if (landId == 0) revert InvalidLandId();
         if (bytes(landRef).length == 0) revert EmptyReference();
         if (owner == address(0)) revert InvalidOwner();
@@ -289,7 +289,7 @@ contract LandRegistry is AccessControl {
         emit LandProposalCancelled(proposalId, landId, msg.sender);
     }
 
-    function getLandProposal(uint256 proposalId) external view returns (LandProposal memory) {
+    function getLandProposal(uint256 proposalId) external view returns (LandProposal memory) { // memory:variable va etre stockée dans la mémoire temporaire de la fonction
         return _getProposal(proposalId);
     }
 

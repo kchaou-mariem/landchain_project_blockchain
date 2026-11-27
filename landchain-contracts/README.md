@@ -12,7 +12,7 @@ Ce prototype ne constitue pas un registre officiel et un transfert technique n'a
 | `docs/DOCUMENTATION_TECHNIQUE.md` | Interface du contrat, événements, erreurs, traçabilité RM → code → tests |
 | `scripts/` | Phase 3 : déploiement, données de démonstration, contrôle des permissions |
 | `demo-documents/` | Documents fictifs dont l'empreinte est enregistrée par le script de données |
-| `hardhat.config.js` | Solidity 0.8.28, optimiseur activé, réseau `localhost` (chaîne 31337) |
+| `hardhat.config.js` | Solidity 0.8.28, optimiseur activé, réseaux `localhost` (31337) et `sepolia` (11155111) |
 
 ## Installation
 
@@ -76,7 +76,38 @@ Détails (comptes, scénarios, MetaMask) : `docs/PHASE3_DEPLOIEMENT_LOCAL.md`.
 
 ## Suite
 
-Phase 4 : adapter la maquette React, brancher ethers.js et MetaMask à partir de `deployments/localhost.json`.
+Phase 4 : utiliser l'application React avec ethers.js et MetaMask, sur localhost ou Sepolia.
+
+## Déploiement Sepolia
+
+Sepolia est un réseau de test public. N'y utilisez jamais de clé contenant des fonds réels
+ni les comptes de test Hardhat (leurs clés sont publiques).
+
+1. Depuis `landchain-contracts`, copiez `.env.example` vers `.env`.
+2. Dans `.env`, configurez `DEPLOYER_PRIVATE_KEY` avec la clé d'un portefeuille de test dédié.
+   Ne partagez pas cette clé et ne commitez jamais le fichier `.env`. Le déployeur recevra
+   uniquement le rôle d'administrateur ; les rôles d'agent seront attribués ensuite dans
+   l'interface d'administration de l'application.
+3. Obtenez des ETH de test Sepolia auprès d'un faucet, puis lancez :
+
+   ```bash
+   npm run deploy:sepolia
+   ```
+
+Le script écrit `deployments/sepolia.json` et l'ABI générée dans `deployments/`.
+Configurez ensuite `LANDCHAIN Land Registry Platform/.env.local` depuis son `.env.example` :
+
+```env
+VITE_LANDCHAIN_NETWORK=sepolia
+VITE_LANDREGISTRY_ADDRESS=<adresse contractuelle de deployments/sepolia.json>
+VITE_LANDCHAIN_DEPLOYMENT_BLOCK=<blockNumber de deployments/sepolia.json>
+```
+
+Redémarrez Vite après modification de `.env.local` et sélectionnez Sepolia dans MetaMask
+(Chain ID `11155111`). Le frontend lit les événements à partir du bloc de déploiement
+et par plages de 40 000 blocs, pour respecter les limites des fournisseurs RPC. Pour revenir au réseau local, utilisez
+`VITE_LANDCHAIN_NETWORK=localhost` et l'adresse de `deployments/localhost.json`.
+La clé privée du déployeur ne doit jamais être placée dans le frontend.
 
 ## Propositions de biens utilisateur
 

@@ -1,12 +1,22 @@
-import { BrowserProvider, Contract, getAddress, isAddress, keccak256, toUtf8Bytes, verifyMessage, type JsonRpcSigner, type Provider } from 'ethers'
+import { BrowserProvider, Contract, EventLog, getAddress, isAddress, JsonRpcProvider, keccak256, Log, toUtf8Bytes, verifyMessage, type DeferredTopicFilter, type JsonRpcSigner, type Provider } from 'ethers'
 import landRegistryAbi from './LandRegistry.abi.json'
 
-export const LANDCHAIN_CHAIN_ID = 31337n
-export const LANDCHAIN_CHAIN_NAME = 'Hardhat Local'
-export const LANDCHAIN_RPC_URL = 'http://127.0.0.1:8545'
+const isLocalNetwork = import.meta.env.VITE_LANDCHAIN_NETWORK === 'localhost'
+export const LANDCHAIN_CHAIN_ID = isLocalNetwork ? 31337n : 11155111n
+export const LANDCHAIN_CHAIN_NAME = isLocalNetwork ? 'Hardhat Local' : 'Sepolia'
+export const LANDCHAIN_RPC_URL = isLocalNetwork
+  ? 'http://127.0.0.1:8545'
+  : 'https://ethereum-sepolia-rpc.publicnode.com'
+const LANDCHAIN_DEPLOYMENT_BLOCK = import.meta.env.VITE_LANDCHAIN_DEPLOYMENT_BLOCK
+const MAX_EVENT_QUERY_BLOCK_RANGE = 40_000
+const BLOCKSCOUT_LOGS_API = 'https://eth-sepolia.blockscout.com/api/v2/addresses'
+let sepoliaRpcLogsUnavailable = false
+let sepoliaReadProvider: JsonRpcProvider | undefined
+let sepoliaExplorerLogsCache: { expiresAt: number; logs: Log[] } | undefined
+let sepoliaExplorerLogsRequest: Promise<Log[]> | undefined
 const AUTH_SESSION_KEY = 'landchain.wallet.auth'
 export const LANDREGISTRY_ADDRESS =
-  import.meta.env.VITE_LANDREGISTRY_ADDRESS ?? '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+  import.meta.env.VITE_LANDREGISTRY_ADDRESS ?? ''
 
 type EthereumProvider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
@@ -30,6 +40,12 @@ export class BlockchainError extends Error {
 export function formatBlockchainError(cause: unknown, fallback: string): string {
   if (cause instanceof BlockchainError) return cause.message
   const message = cause instanceof Error ? cause.message : String(cause ?? '')
+  const nestedRpcMessage = [...message.matchAll(/"message"\s*:\s*"([^"]+)"/g)]
+    .map(match => match[1])
+    .find(candidate => candidate && candidate !== 'Internal JSON-RPC error')
+  if (nestedRpcMessage) {
+    return `Erreur du fournisseur Sepolia : ${nestedRpcMessage}`
+  }
   const customError = message.match(/(?:execution reverted:\s*)?([A-Za-z0-9_]+)\(([^)]*)\)/)
   if (customError) {
     const [, name, argumentsText] = customError
@@ -61,10 +77,10 @@ export function formatBlockchainError(cause: unknown, fallback: string): string 
     return 'Transaction annulée dans MetaMask. Aucune modification n’a été effectuée.'
   }
   if (message.includes('insufficient funds')) {
-    return 'Solde insuffisant pour payer les frais de transaction sur Hardhat Local.'
+    return `Solde insuffisant pour payer les frais de transaction sur ${LANDCHAIN_CHAIN_NAME}.`
   }
   if (message.includes('could not coalesce error') || message.includes('Internal JSON-RPC error')) {
-    return 'Le nœud blockchain local a refusé la requête. Vérifiez que Hardhat est démarré sur le réseau 31337.'
+    return `Le nœud ${LANDCHAIN_CHAIN_NAME} a refusé la requête. Vérifiez que MetaMask et le fournisseur RPC sont disponibles.`
   }
   if (message.includes('missing revert data') || message.includes('CALL_EXCEPTION')) {
     return 'Le smart contract a refusé cette opération. Vérifiez le portefeuille connecté, le rôle requis et l’état du bien.'
@@ -81,6 +97,13 @@ export function getEthereum(): EthereumProvider {
 
 export function getBrowserProvider(): BrowserProvider {
   return new BrowserProvider(getEthereum())
+}
+
+function getSepoliaReadProvider(): JsonRpcProvider {
+  if (!sepoliaReadProvider) {
+    sepoliaReadProvider = new JsonRpcProvider(LANDCHAIN_RPC_URL, Number(LANDCHAIN_CHAIN_ID))
+  }
+  return sepoliaReadProvider
 }
 
 export async function connectWallet(): Promise<{
@@ -212,7 +235,177 @@ export async function getConnectedWallet(): Promise<{
 export function getLandRegistryContract(
   providerOrSigner: Provider | JsonRpcSigner,
 ): Contract {
-  return new Contract(LANDREGISTRY_ADDRESS, landRegistryAbi, providerOrSigner)
+  if (!isAddress(LANDREGISTRY_ADDRESS)) {
+    throw new BlockchainError(
+      'Adresse du contrat LandRegistry manquante ou invalide. Définissez VITE_LANDREGISTRY_ADDRESS dans le fichier .env.local du frontend.',
+    )
+  }
+  return new Contract(getAddress(LANDREGISTRY_ADDRESS), landRegistryAbi, providerOrSigner)
+}
+
+async function assertWalletNetwork(signer: JsonRpcSigner) {
+  const provider = signer.provider
+  if (!provider) {
+    throw new BlockchainError('Le fournisseur MetaMask est indisponible.')
+  }
+  const chainId = await provider.send('eth_chainId', []) as string
+  if (BigInt(chainId) !== LANDCHAIN_CHAIN_ID) {
+    throw new BlockchainError(
+      `MetaMask est connectée au réseau ${BigInt(chainId).toString()} (${chainId}), alors que l’application utilise ${LANDCHAIN_CHAIN_NAME} (chain ID ${LANDCHAIN_CHAIN_ID.toString()}). Sélectionnez Sepolia dans MetaMask puis réessayez.`,
+    )
+  }
+}
+
+async function queryFilterInChunks(
+  contract: Contract,
+  filter: DeferredTopicFilter,
+) {
+  const fromBlock = isLocalNetwork ? 0 : Number(LANDCHAIN_DEPLOYMENT_BLOCK)
+  if (!Number.isSafeInteger(fromBlock) || fromBlock < 0) {
+    throw new BlockchainError(
+      'Bloc de déploiement Sepolia manquant ou invalide. Définissez VITE_LANDCHAIN_DEPLOYMENT_BLOCK dans .env.local.',
+    )
+  }
+
+  const connectedProvider = contract.runner?.provider
+  if (!connectedProvider) {
+    throw new BlockchainError('Aucun fournisseur blockchain disponible pour lire les événements.')
+  }
+  const provider = isLocalNetwork ? connectedProvider : getSepoliaReadProvider()
+  const eventContract = isLocalNetwork
+    ? contract
+    : new Contract(await contract.getAddress(), contract.interface, provider)
+  let latestBlock: number
+  try {
+    latestBlock = await provider.getBlockNumber()
+  } catch (cause) {
+    throw new BlockchainError(
+      `Impossible de lire le dernier bloc sur ${LANDCHAIN_CHAIN_NAME} : ${cause instanceof Error ? cause.message : String(cause)}`,
+    )
+  }
+  if (fromBlock > latestBlock) {
+    throw new BlockchainError(
+      `Le bloc de déploiement configuré (${fromBlock}) est supérieur au dernier bloc du réseau (${latestBlock}).`,
+    )
+  }
+
+  const useExplorerFallback = !isLocalNetwork && sepoliaRpcLogsUnavailable
+  const events: EventLog[] = []
+  if (!useExplorerFallback) {
+    for (let startBlock = fromBlock; startBlock <= latestBlock; startBlock += MAX_EVENT_QUERY_BLOCK_RANGE) {
+      const endBlock = Math.min(startBlock + MAX_EVENT_QUERY_BLOCK_RANGE - 1, latestBlock)
+      try {
+        const chunk = await eventContract.queryFilter(filter, startBlock, endBlock)
+        for (const event of chunk) {
+          if (!(event instanceof EventLog)) {
+            throw new BlockchainError('Un événement du contrat LandRegistry n’a pas pu être décodé.')
+          }
+          events.push(event)
+        }
+      } catch (cause) {
+        if (isLocalNetwork) {
+          throw new BlockchainError(
+            `Impossible de lire les événements sur le nœud local : ${cause instanceof Error ? cause.message : String(cause)}`,
+          )
+        }
+        sepoliaRpcLogsUnavailable = true
+        break
+      }
+    }
+    if (!sepoliaRpcLogsUnavailable) return events
+  }
+
+  const topics = await filter.getTopicFilter()
+  if (topics.some(topic => topic !== null && typeof topic !== 'string' && !Array.isArray(topic))) {
+    throw new BlockchainError('Le filtre d’événements demandé ne peut pas être utilisé avec le fournisseur Sepolia.')
+  }
+  const allLogs = await getSepoliaExplorerLogs(await eventContract.getAddress(), provider)
+  return allLogs
+    .filter(log => log.blockNumber >= fromBlock && log.blockNumber <= latestBlock)
+    .filter(log => topics.every((topic, index) => {
+      if (topic === null) return true
+      const expectedTopics = Array.isArray(topic) ? topic : [topic]
+      return expectedTopics.some(expected => log.topics[index]?.toLowerCase() === expected.toLowerCase())
+    }))
+    .map(log => new EventLog(log, contract.interface, filter.fragment))
+}
+
+async function getSepoliaExplorerLogs(address: string, provider: Provider): Promise<Log[]> {
+  if (sepoliaExplorerLogsCache && sepoliaExplorerLogsCache.expiresAt > Date.now()) {
+    return sepoliaExplorerLogsCache.logs
+  }
+  if (!sepoliaExplorerLogsRequest) {
+    sepoliaExplorerLogsRequest = (async () => {
+      const logs: Log[] = []
+      const nextPage = new URLSearchParams()
+      const visitedPages = new Set<string>()
+      while (true) {
+        const url = new URL(`${BLOCKSCOUT_LOGS_API}/${address}/logs`)
+        nextPage.forEach((value, key) => url.searchParams.set(key, value))
+        if (visitedPages.has(url.toString())) {
+          throw new BlockchainError('L’explorateur Sepolia a retourné une pagination invalide.')
+        }
+        visitedPages.add(url.toString())
+
+        let response: Response
+        try {
+          response = await fetch(url)
+        } catch (cause) {
+          throw new BlockchainError(
+            `La lecture RPC des événements a échoué et l’explorateur Sepolia est inaccessible : ${cause instanceof Error ? cause.message : String(cause)}`,
+          )
+        }
+        if (!response.ok) {
+          throw new BlockchainError(`L’explorateur Sepolia a refusé la lecture des événements (HTTP ${response.status}).`)
+        }
+        const payload = await response.json() as {
+          items?: Array<{
+            block_hash: string
+            block_number: number
+            data: string
+            index: number
+            topics: string[]
+            transaction_hash: string
+            transaction_index: number
+          }>
+          next_page_params?: Record<string, string | number> | null
+        }
+        if (!Array.isArray(payload.items)) {
+          throw new BlockchainError('L’explorateur Sepolia a retourné une réponse invalide pour les événements.')
+        }
+
+        for (const rawLog of payload.items) {
+          logs.push(new Log({
+            address,
+            blockHash: rawLog.block_hash,
+            blockNumber: rawLog.block_number,
+            data: rawLog.data,
+            index: rawLog.index,
+            removed: false,
+            topics: rawLog.topics,
+            transactionHash: rawLog.transaction_hash,
+            transactionIndex: rawLog.transaction_index,
+          }, provider))
+        }
+
+        if (!payload.next_page_params) break
+        nextPage.forEach((_value, key) => nextPage.delete(key))
+        for (const [key, value] of Object.entries(payload.next_page_params)) {
+          nextPage.set(key, String(value))
+        }
+      }
+      return logs
+    })()
+  }
+
+  const request = sepoliaExplorerLogsRequest
+  try {
+    const logs = await request
+    sepoliaExplorerLogsCache = { expiresAt: Date.now() + 5_000, logs }
+    return logs
+  } finally {
+    if (sepoliaExplorerLogsRequest === request) sepoliaExplorerLogsRequest = undefined
+  }
 }
 
 export function formatLandStatus(status: bigint | number): 'Actif' | 'Transfert en cours' | 'Suspendu' {
@@ -223,8 +416,8 @@ export function formatLandStatus(status: bigint | number): 'Actif' | 'Transfert 
 export async function getRegistryLands(provider: Provider) {
   const contract = getLandRegistryContract(provider)
   const [registeredEvents, approvedProposalEvents] = await Promise.all([
-    contract.queryFilter(contract.filters.LandRegistered()),
-    contract.queryFilter(contract.filters.LandProposalApproved()),
+    queryFilterInChunks(contract, contract.filters.LandRegistered()),
+    queryFilterInChunks(contract, contract.filters.LandProposalApproved()),
   ])
   const landIds = new Set(
     [...registeredEvents, ...approvedProposalEvents]
@@ -318,10 +511,10 @@ export async function submitLandProposal(
 export async function getLandProposals(provider: Provider) {
   const contract = getLandRegistryContract(provider)
   const [submittedEvents, approvedEvents, rejectedEvents, cancelledEvents] = await Promise.all([
-    contract.queryFilter(contract.filters.LandProposalSubmitted()),
-    contract.queryFilter(contract.filters.LandProposalApproved()),
-    contract.queryFilter(contract.filters.LandProposalRejected()),
-    contract.queryFilter(contract.filters.LandProposalCancelled()),
+    queryFilterInChunks(contract, contract.filters.LandProposalSubmitted()),
+    queryFilterInChunks(contract, contract.filters.LandProposalApproved()),
+    queryFilterInChunks(contract, contract.filters.LandProposalRejected()),
+    queryFilterInChunks(contract, contract.filters.LandProposalCancelled()),
   ])
   const processedProposalIds = new Set(
     [...approvedEvents, ...rejectedEvents, ...cancelledEvents]
@@ -363,6 +556,7 @@ export async function cancelLandProposal(signer: JsonRpcSigner, proposalId: bigi
 async function ensureTransactionFunds(signer: JsonRpcSigner, gasEstimate: Promise<bigint>) {
   const provider = signer.provider
   if (!provider) throw new BlockchainError('Le fournisseur MetaMask est indisponible.')
+  await assertWalletNetwork(signer)
   const [balance, gasLimit, feeData] = await Promise.all([
     provider.getBalance(await signer.getAddress()),
     gasEstimate,
@@ -372,7 +566,7 @@ async function ensureTransactionFunds(signer: JsonRpcSigner, gasEstimate: Promis
   const required = gasLimit * gasPrice
   if (balance < required) {
     throw new BlockchainError(
-      `Solde ETH insuffisant pour ce portefeuille (${(balance / 10n ** 18n).toString()} ETH). Sélectionnez le compte Hardhat de l’agent ou créditez ce compte sur le réseau local 31337.`,
+      `Solde ETH insuffisant pour ce portefeuille (${(balance / 10n ** 18n).toString()} ETH). Demandez des ETH de test ${LANDCHAIN_CHAIN_NAME} depuis un faucet officiel.`,
     )
   }
 }
@@ -414,20 +608,43 @@ export async function grantAgentRole(signer: JsonRpcSigner, account: string) {
   if (!isAddress(account)) {
     throw new BlockchainError('Adresse du compte invalide. Utilisez une adresse 0x complète.')
   }
+  await assertWalletNetwork(signer)
   const contract = getLandRegistryContract(signer)
   const role = keccak256(toUtf8Bytes('AGENT_ROLE'))
-  const transaction = await contract.grantRole(role, getAddress(account))
-  return transaction.wait()
+  const adminRole = await contract.DEFAULT_ADMIN_ROLE() as string
+  const admin = await signer.getAddress()
+  if (!(await contract.hasRole(adminRole, admin))) {
+    throw new BlockchainError(`Le portefeuille ${admin} n’a pas le rôle administrateur de ce contrat.`)
+  }
+  const target = getAddress(account)
+  if (await contract.hasRole(role, target)) {
+    throw new BlockchainError(`Le portefeuille ${target} possède déjà le rôle Agent foncier.`)
+  }
+  try {
+    await contract.grantRole.staticCall(role, target)
+    await ensureTransactionFunds(signer, contract.grantRole.estimateGas(role, target))
+  } catch (cause) {
+    throw new BlockchainError(
+      `Impossible d’autoriser ${target}. ${formatBlockchainError(cause, 'Vérifiez le compte administrateur, le réseau Sepolia et le solde en ETH de test.')}`,
+    )
+  }
+  const transaction = await contract.grantRole(role, target)
+  const receipt = await transaction.wait()
+  sepoliaExplorerLogsCache = undefined
+  return receipt
 }
 
 export async function revokeAgentRole(signer: JsonRpcSigner, account: string) {
   if (!isAddress(account)) {
     throw new BlockchainError('Adresse du compte invalide. Utilisez une adresse 0x complète.')
   }
+  await assertWalletNetwork(signer)
   const contract = getLandRegistryContract(signer)
   const role = keccak256(toUtf8Bytes('AGENT_ROLE'))
   const transaction = await contract.revokeRole(role, getAddress(account))
-  return transaction.wait()
+  const receipt = await transaction.wait()
+  sepoliaExplorerLogsCache = undefined
+  return receipt
 }
 
 export async function requestTransfer(
@@ -459,7 +676,7 @@ export async function cancelTransferRequest(signer: JsonRpcSigner, requestId: bi
 
 export async function getTransferRequests(provider: Provider) {
   const contract = getLandRegistryContract(provider)
-  const events = await contract.queryFilter(contract.filters.TransferRequested())
+  const events = await queryFilterInChunks(contract, contract.filters.TransferRequested())
   return Promise.all(events.map(async event => {
     if (!('args' in event) || !event.args) return null
     const requestId = event.args[0] as bigint
@@ -495,18 +712,18 @@ export async function getTransferRequestDetails(provider: Provider, requestId: b
 export async function getTransactionHistory(provider: Provider) {
   const contract = getLandRegistryContract(provider)
   const eventQueries = [
-    ['Land registered', contract.queryFilter(contract.filters.LandRegistered())],
-    ['Land proposal submitted', contract.queryFilter(contract.filters.LandProposalSubmitted())],
-    ['Land proposal approved', contract.queryFilter(contract.filters.LandProposalApproved())],
-    ['Land proposal rejected', contract.queryFilter(contract.filters.LandProposalRejected())],
-    ['Land proposal cancelled', contract.queryFilter(contract.filters.LandProposalCancelled())],
-    ['Document hash updated', contract.queryFilter(contract.filters.DocumentHashUpdated())],
-    ['Land status changed', contract.queryFilter(contract.filters.LandStatusChanged())],
-    ['Transfer requested', contract.queryFilter(contract.filters.TransferRequested())],
-    ['Transfer approved', contract.queryFilter(contract.filters.TransferApproved())],
-    ['Transfer rejected', contract.queryFilter(contract.filters.TransferRejected())],
-    ['Transfer cancelled', contract.queryFilter(contract.filters.TransferCancelled())],
-    ['Ownership changed', contract.queryFilter(contract.filters.OwnershipChanged())],
+    ['Land registered', queryFilterInChunks(contract, contract.filters.LandRegistered())],
+    ['Land proposal submitted', queryFilterInChunks(contract, contract.filters.LandProposalSubmitted())],
+    ['Land proposal approved', queryFilterInChunks(contract, contract.filters.LandProposalApproved())],
+    ['Land proposal rejected', queryFilterInChunks(contract, contract.filters.LandProposalRejected())],
+    ['Land proposal cancelled', queryFilterInChunks(contract, contract.filters.LandProposalCancelled())],
+    ['Document hash updated', queryFilterInChunks(contract, contract.filters.DocumentHashUpdated())],
+    ['Land status changed', queryFilterInChunks(contract, contract.filters.LandStatusChanged())],
+    ['Transfer requested', queryFilterInChunks(contract, contract.filters.TransferRequested())],
+    ['Transfer approved', queryFilterInChunks(contract, contract.filters.TransferApproved())],
+    ['Transfer rejected', queryFilterInChunks(contract, contract.filters.TransferRejected())],
+    ['Transfer cancelled', queryFilterInChunks(contract, contract.filters.TransferCancelled())],
+    ['Ownership changed', queryFilterInChunks(contract, contract.filters.OwnershipChanged())],
   ] as const
   const groups = await Promise.all(eventQueries.map(async ([type, query]) => {
     const events = await query
@@ -615,8 +832,8 @@ export async function getAgentAccounts(provider: Provider): Promise<string[]> {
   const contract = getLandRegistryContract(provider)
   const role = keccak256(toUtf8Bytes('AGENT_ROLE'))
   const [grantedEvents, revokedEvents] = await Promise.all([
-    contract.queryFilter(contract.filters.RoleGranted(role)),
-    contract.queryFilter(contract.filters.RoleRevoked(role)),
+    queryFilterInChunks(contract, contract.filters.RoleGranted(role)),
+    queryFilterInChunks(contract, contract.filters.RoleRevoked(role)),
   ])
   const roleEvents = [...grantedEvents, ...revokedEvents].sort((left, right) => {
     const blockOrder = left.blockNumber - right.blockNumber

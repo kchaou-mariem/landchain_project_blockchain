@@ -5,13 +5,19 @@ const { getActors, describeActors } = require("./accounts");
 const DEPLOY_DIR = path.join(__dirname, "..", "..", "deployments");
 
 /**
- * Déploie LandRegistry et attribue AGENT_ROLE aux deux agents.
+ * Déploie LandRegistry. Le réseau local configure les agents de démonstration ;
+ * Sepolia laisse les rôles d'agent à gérer depuis l'application.
  * Si `write` est vrai, écrit deployments/<réseau>.json et deployments/LandRegistry.abi.json
  * (adresse et ABI lus par le frontend, décision A8).
  */
 async function deployLandRegistry(hre, { write = false, log = () => {} } = {}) {
   const { ethers, network, artifacts } = hre;
-  const actors = await getActors(ethers);
+  const actors = network.name === "sepolia"
+    ? { admin: (await ethers.getSigners())[0] }
+    : await getActors(ethers);
+  if (!actors.admin) {
+    throw new Error(`Aucun compte de déploiement disponible sur le réseau ${network.name}.`);
+  }
   const adminAddress = await actors.admin.getAddress();
 
   const Factory = await ethers.getContractFactory("LandRegistry", actors.admin);
@@ -22,30 +28,41 @@ async function deployLandRegistry(hre, { write = false, log = () => {} } = {}) {
   const address = await registry.getAddress();
   log(`LandRegistry déployé : ${address} (bloc ${deployReceipt.blockNumber}, gaz ${deployReceipt.gasUsed})`);
 
-  const AGENT_ROLE = await registry.AGENT_ROLE();
   const grants = [];
-  for (const key of ["agent1", "agent2"]) {
-    const configuredAddress = network.name === "localhost" && key === "agent2"
-      ? process.env.LANDCHAIN_AGENT2_ADDRESS
-      : undefined;
-    const agentAddress = configuredAddress ?? await actors[key].getAddress();
-    if (!ethers.isAddress(agentAddress)) {
-      throw new Error(`Adresse ${key} invalide : ${agentAddress}`);
-    }
-    const tx = await registry.connect(actors.admin).grantRole(AGENT_ROLE, agentAddress);
-    const receipt = await tx.wait();
-    grants.push({ agent: agentAddress, txHash: receipt.hash, gasUsed: receipt.gasUsed.toString() });
-    log(`AGENT_ROLE attribué à ${key} : ${agentAddress}`);
-    if (configuredAddress && (await ethers.provider.getBalance(agentAddress)) < ethers.parseEther("1")) {
-      await (await actors.admin.sendTransaction({
-        to: agentAddress,
-        value: ethers.parseEther("100"),
-      })).wait();
-      log(`Solde local attribué à ${key} : 100 ETH`);
+  if (network.name !== "sepolia") {
+    const AGENT_ROLE = await registry.AGENT_ROLE();
+    for (const key of ["agent1", "agent2"]) {
+      const configuredAddress = network.name === "localhost" && key === "agent2"
+        ? process.env.LANDCHAIN_AGENT2_ADDRESS
+        : undefined;
+      const agentAddress = configuredAddress ?? await actors[key].getAddress();
+      if (!ethers.isAddress(agentAddress)) {
+        throw new Error(`Adresse ${key} invalide : ${agentAddress}`);
+      }
+      const tx = await registry.connect(actors.admin).grantRole(AGENT_ROLE, agentAddress);
+      const receipt = await tx.wait();
+      grants.push({ agent: agentAddress, txHash: receipt.hash, gasUsed: receipt.gasUsed.toString() });
+      log(`AGENT_ROLE attribué à ${key} : ${agentAddress}`);
+      if (configuredAddress && (await ethers.provider.getBalance(agentAddress)) < ethers.parseEther("1")) {
+        await (await actors.admin.sendTransaction({
+          to: agentAddress,
+          value: ethers.parseEther("100"),
+        })).wait();
+        log(`Solde local attribué à ${key} : 100 ETH`);
+      }
     }
   }
 
   const chainId = Number((await ethers.provider.getNetwork()).chainId);
+  const accounts = network.name === "sepolia"
+    ? [{
+        index: 0,
+        key: "admin",
+        label: "Admin",
+        role: "Administrateur technique",
+        address: adminAddress,
+      }]
+    : await describeActors(actors);
   const info = {
     network: network.name,
     chainId,
@@ -58,7 +75,7 @@ async function deployLandRegistry(hre, { write = false, log = () => {} } = {}) {
       deployGasUsed: deployReceipt.gasUsed.toString(),
     },
     roles: { admin: adminAddress, agentGrants: grants },
-    accounts: await describeActors(actors),
+    accounts,
   };
 
   if (write) {
@@ -102,3 +119,5 @@ async function loadDeployedRegistry(hre) {
 }
 
 module.exports = { DEPLOY_DIR, deployLandRegistry, loadDeployedRegistry };
+
+//ce fichier contient des fonctions pour déployer le contrat LandRegistry et charger un contrat déjà déployé à partir d'un fichier JSON. Il gère également l'attribution des rôles aux agents et l'écriture des informations de déploiement dans des fichiers pour une utilisation ultérieure.
